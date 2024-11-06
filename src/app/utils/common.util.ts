@@ -177,4 +177,8 @@ export class CommonUtil {
     if (partition) localStorage.setItem('selectedPartitionAndQueue', `${partition}:${queue}`);
     else localStorage.removeItem('selectedPartitionAndQueue');
   }
+  
+  static typeFormatter(value: string): string {
+    return "yyyyy";
+  }
 }

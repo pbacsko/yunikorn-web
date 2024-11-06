@@ -122,6 +122,7 @@ export class SchedulerService {
 
                 appAllocations.push(
                   new AllocationInfo(
+                    "yunikorn",
                     alloc['displayName'],
                     alloc['allocationKey'],
                     alloc['allocationTags'],
@@ -209,10 +210,9 @@ export class SchedulerService {
             );
 
             const allocations = node['allocations'];
+            const appAllocations: AllocationInfo[] = [];
 
             if (allocations && allocations.length > 0) {
-              const appAllocations: AllocationInfo[] = [];
-
               allocations.forEach((alloc: any) => {
                 if (
                   alloc.allocationTags &&
@@ -228,6 +228,7 @@ export class SchedulerService {
 
                 appAllocations.push(
                   new AllocationInfo(
+                    "yunikorn",
                     alloc['displayName'],
                     alloc['allocationKey'],
                     alloc['allocationTags'],
@@ -240,10 +241,43 @@ export class SchedulerService {
                   )
                 );
               });
-
-              nodeInfo.setAllocations(appAllocations);
             }
 
+            const foreignAllocations = node['foreignAllocations'];
+            if (foreignAllocations && foreignAllocations.length > 0) {
+	      foreignAllocations.forEach((alloc: any) => {
+                if (
+                  alloc.allocationTags &&
+                  alloc.allocationTags['kubernetes.io/meta/namespace'] &&
+                  alloc.allocationTags['kubernetes.io/meta/podName']
+                ) {
+                  alloc[
+                    'displayName'
+                  ] = `${alloc.allocationTags['kubernetes.io/meta/namespace']}/${alloc.allocationTags['kubernetes.io/meta/podName']}`;
+                } else {
+                  alloc['displayName'] = '<nil>';
+                }
+
+                appAllocations.push(
+                  new AllocationInfo(
+                   "foreign",
+                    alloc['displayName'],
+                    alloc['allocationKey'],
+                    alloc['allocationTags'],
+                    this.formatResource(alloc['resource'] as SchedulerResourceInfo),
+                    alloc['priority'],
+                    "n/a",
+                    alloc['nodeId'],
+                    "n/a",
+                    alloc['partition']
+                  )
+                );
+              });
+            }
+
+            if (appAllocations.length > 0) {
+              nodeInfo.setAllocations(appAllocations);
+            }
             result.push(nodeInfo);
           });
         }
